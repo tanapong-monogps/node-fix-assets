@@ -35,6 +35,26 @@ app.get("/", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Opps has error from internal" });
   }
 });
+app.get("/dmac", async (req: Request, res: Response) => {
+  const dmac = req.query.id as string;
+  if (!dmac) {
+    return res.status(400).json({ error: "Missing 'dmac' query parameter" });
+  }
+  try {
+    const result = await db?.query(
+      "SELECT *, DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable FROM realtime_kg03_fixasset WHERE dmac = ? ORDER BY updated_at DESC LIMIT 10",
+      [dmac]
+    );
+    if (result && Array.isArray(result)) {
+      res.json(result[0]);
+    } else {
+      res.json([]);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Opps has error from internal" });
+  }
+});
 app.get("/gmac", async(req: Request, res: Response) => {
   let ids: string[] = [];
   if (typeof req.query.ids === "string") {
