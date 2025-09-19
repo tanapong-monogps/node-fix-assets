@@ -42,7 +42,7 @@ app.get("/dmac", async (req: Request, res: Response) => {
   }
   try {
     const result = await db?.query(
-      "SELECT *, DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable FROM realtime_kg03_fixasset WHERE dmac = ? ORDER BY updated_at DESC LIMIT 10",
+      "SELECT *, DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable FROM realtime_kg03_fixasset WHERE dmac = ? ORDER BY time DESC LIMIT 10",
       [dmac]
     );
     if (result && Array.isArray(result)) {
@@ -77,7 +77,7 @@ app.get("/gmac", async(req: Request, res: Response) => {
       SELECT *
       FROM ranked
       WHERE rn <= 10
-      ORDER BY gmac, updated_at DESC;`, ids
+      ORDER BY gmac, time DESC;`, ids
     );
    // const result = await db?.query(`SELECT *, DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable FROM realtime_kg03_fixasset WHERE gmac IN (${placeholders}) ORDER BY updated_at DESC`, ids);
     if (result && Array.isArray(result)) {
