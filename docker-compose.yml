@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: node-fix-assets
+    ports:
+      - "3200:3200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
