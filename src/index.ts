@@ -35,6 +35,42 @@ app.get("/", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Opps has error from internal" });
   }
 });
+app.get("/gmac", async(req: Request, res: Response) => {
+  let ids: string[] = [];
+  if (typeof req.query.ids === "string") {
+    ids = req.query.ids.split(",");
+  } else if (Array.isArray(req.query.ids)) {
+    ids = req.query.ids.flatMap(id => typeof id === "string" ? id.split(",") : []);
+  } else {
+    return res.status(400).json({ error: "Missing or invalid 'ids' query parameter" });
+  }
+  try {
+    const placeholders = ids.map(() => "?").join(","); // "?,?"
+    const result = await db?.query(
+      `WITH ranked AS (
+        SELECT t.*,
+               ROW_NUMBER() OVER (PARTITION BY gmac ORDER BY updated_at DESC) AS rn,
+               DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable 
+        FROM realtime_kg03_fixasset t
+        WHERE gmac IN (${placeholders})
+      )
+      SELECT *
+      FROM ranked
+      WHERE rn <= 10
+      ORDER BY gmac, updated_at DESC;`, ids
+    );
+   // const result = await db?.query(`SELECT *, DATE_FORMAT(time, '%Y-%m-%d %H:%i:%s') AS time_readable FROM realtime_kg03_fixasset WHERE gmac IN (${placeholders}) ORDER BY updated_at DESC`, ids);
+    if (result && Array.isArray(result)) {
+      res.json(result[0]);
+    } else {
+      res.json([]);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Opps has error from internal" });
+    
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
