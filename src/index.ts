@@ -1,20 +1,23 @@
 import express, { Request, Response } from "express";
 import mysql from "mysql2/promise";
 import { Client } from "ssh2";
+import dotenv from "dotenv";
+dotenv.config(); // โหลดไฟล์ .env
 let db: mysql.Connection | null = null;
 
 const dbConfig = {
-  host: "127.0.0.1", // ใช้ localhost เพราะเชื่อมต่อผ่าน SSH Tunnel
-  user: "admin_payroll",
-  password: "@m0n0St0ck4dm1n#",
-  database: "db_fixassets",
-  port: 3306,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT),
 };
+
 const sshConfig = {
-  host: "8.213.196.146", // IP หรือ hostname ของ SSH server
-  port: 22, // พอร์ต SSH (ค่าเริ่มต้นคือ 22)
-  username: "root",
-  password: "M0n0G5SsR3alt1m3@Ali", // หรือใช้ privateKey แทน password
+  host: process.env.SSH_HOST,
+  port: Number(process.env.SSH_PORT),
+  username: process.env.SSH_USER,
+  password: process.env.SSH_PASS,
 };
 const sshClient = new Client();
 sshClient.connect(sshConfig);
@@ -43,8 +46,8 @@ function main() {
     sshClient.forwardOut(
       "127.0.0.1",
       0,
-      dbConfig.host,
-      dbConfig.port,
+      process.env.DB_HOST!,
+      Number(process.env.DB_PORT!),
       async (err, stream) => {
         if (err) {
           console.error("Error setting up SSH tunnel:", err.message);
